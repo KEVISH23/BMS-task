@@ -35,4 +35,16 @@ export class Category{
             res.status(400).json({message})
         }
     }
+
+    @httpDelete('/delete/:id')
+    async deleteCategory(@request() req:Request,@response() res:Response):Promise<void>{
+        try{
+            const {id} = req.params
+            await this.CS.deleteCategory(id)
+            res.status(200).json({message:"Deleted"})
+        }catch(err){
+            let message:string = errorHandler(err);
+            res.status(400).json({message})
+        }
+    }
 }

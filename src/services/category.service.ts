@@ -13,4 +13,8 @@ export class CategoryService{
   async addCategory(data:ICategory):Promise<void>{
     await category.create(data)
   }
+
+  async deleteCategory(id:String):Promise<void>{
+    await category.findByIdAndDelete(id)
+  }
 }

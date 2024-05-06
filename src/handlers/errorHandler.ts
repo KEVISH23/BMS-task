@@ -4,7 +4,7 @@ export const errorHandler = (err:any):string=>{
     if(err.name == 'CastError'){
         return message = 'Invalid ID please go through it'
     }if(err.code==11000){
-       return message = 'Please be unique cause email already exist'
+       return message = 'Please be unique cause category already exist'
     }
     for(const key in err.errors){
         message+=err.errors[key].message;
