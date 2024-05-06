@@ -10,6 +10,9 @@ import jwt from 'jsonwebtoken'
             if(token){
                 jwt.verify(token.toString(),"ZindagiEkSafarHaiSuhaNa",(err,decoded:any)=>{
                     // console.log(decoded.role)
+                    if(err){
+                        res.status(500).json({message:"token provided is not valid.."})
+                    }
                     if(decoded){
                         // console.log( decoded)
                         // req.user = decoded

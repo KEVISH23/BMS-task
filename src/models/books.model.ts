@@ -21,19 +21,18 @@ const bookSchema = new Schema<IBooks>({
         type:String,
         unique:true,
         required:[true,'Book must have ISBN'],
-        maxLength:[13,"Maximum 13 characters allowed"]
+        maxLength:[13,"Maximum 13 characters allowed in ISBN"]
     },
     description:{
         type:String,
-        required:[true,'Description is required'],
         maxLength:[
-            300,"Maximum 300 characters allowed"
+            300,"Maximum 300 characters allowed in description"
         ]
     },
     price:{
         type:Number,
         required:[true,"A book cannot be sold without price"],
-        min:[1,'Minimum 1']
+        min:[1,'Minimum 1 for price']
     }
 })
 
