@@ -12,10 +12,44 @@ import { author } from "../models";
 export class AuthorController{
 
     constructor(@inject<authorService>(TYPES.authorService) private AS:authorService){}
-    @httpGet('/')
+    @httpGet('/:id?')
     async getAuthors(@request() req:Request,@response() res:Response):Promise<void>{
         try{
-            const data:IAuthor[] = await this.AS.getAUthor()
+            const {id} = req.params
+            const {search,page,limit} = req.query
+            let pagination_page = Number(page) || 1
+            const pagination_total:number = await author.countDocuments()
+            const pagination_limit = Number(limit) || pagination_total
+            const totalPage = Math.ceil(pagination_total/pagination_limit)
+            if(pagination_page>totalPage){
+                pagination_page = totalPage
+            }
+            if(pagination_page<1){
+                pagination_page = 1
+            }
+            let query:any = {}
+            if(search){
+                const regex = new RegExp(search.toString(),'i')
+                query = {
+                    $or:[
+                        {authorName:regex},
+                        {biography:regex},
+                        {nationality:regex},
+                    ]
+                }
+            }
+            if(id){
+                const idData:IAuthor|null = await this.AS.getAUthorById(id)
+                if(idData){
+                    res.status(200).json({message:'Got data',data:idData})
+                    return;
+                }else{
+                    res.status(404).json({message:"Data not found"})
+                    return;
+                }
+
+            }
+            const data:IAuthor[] = await this.AS.getAUthor(query,pagination_limit,pagination_page)
             res.status(200).json({data})
         }catch(err:any){
             res.status(500).json({message:err.message})
