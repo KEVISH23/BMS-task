@@ -6,8 +6,8 @@ interface IAS{
 }
 @injectable()
 export class authorService implements IAS{
-    async getAUthor(query:object,page_limit:number,page_page:number):Promise<IAuthor[]>{
-        return await author.find(query).skip((page_page-1)*page_limit).limit(page_limit)
+    async getAUthor(pipeline:any,page_limit:number,page_page:number):Promise<IAuthor[]>{
+        return await author.aggregate(pipeline)
     }
     async getAUthorById(id:string):Promise<IAuthor|null>{
         return await author.findById(id)

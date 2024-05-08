@@ -3,8 +3,8 @@ import { ICategory } from "../interface";
 import { category, user } from "../models";
 @injectable()
 export class CategoryService{
-    async getCategoryService(query:object,page_limit:number,page_page:number):Promise<ICategory[]>{
-        const data:ICategory[] = await category.find(query).skip((page_page-1)*page_limit).limit(page_limit)
+    async getCategoryService(pipeline:any,page_limit:number,page_page:number):Promise<ICategory[]>{
+        const data:ICategory[] = await category.aggregate(pipeline)
         return data
     }
 
