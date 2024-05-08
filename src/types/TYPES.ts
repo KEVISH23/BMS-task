@@ -11,5 +11,5 @@ export const TYPES = {
     authorService:Symbol.for('authorService'),
     BookService:Symbol.for('BookService'),
     //middleware
-    userMiddleware:Symbol.for("userMiddleware"),
+    IsAdminMiddleware:Symbol.for("IsAdminMiddleware"),
 }

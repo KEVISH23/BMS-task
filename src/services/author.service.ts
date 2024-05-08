@@ -1,9 +1,11 @@
 import { injectable } from "inversify"
 import { IAuthor } from "../interface";
 import { author } from "../models";
-
+interface IAS{
+    getAUthor(query:object,page_limit:number,page_page:number):Promise<IAuthor[]>
+}
 @injectable()
-export class authorService{
+export class authorService implements IAS{
     async getAUthor(query:object,page_limit:number,page_page:number):Promise<IAuthor[]>{
         return await author.find(query).skip((page_page-1)*page_limit).limit(page_limit)
     }

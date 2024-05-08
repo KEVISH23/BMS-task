@@ -1,7 +1,7 @@
 import { inject } from "inversify";
 
 import { controller, Controller,httpDelete,httpGet,httpPost,httpPut, request, response } from "inversify-express-utils";
-import { isLoggedIn } from "../middlweare/user.middleware";
+// import { isLoggedIn } from "../middlweare/user.middleware";
 import { Request, Response } from "express";
 import { CategoryService } from "../services";
 import { TYPES } from "../types/TYPES";
@@ -9,7 +9,7 @@ import { errorHandler } from "../handlers/errorHandler";
 import { ICategory } from "../interface";
 import { category } from "../models";
 
-@controller('/category',isLoggedIn)
+@controller('/category')
 export class Category{
     constructor(@inject<CategoryService>(TYPES.CategoryService) private CS:CategoryService){}
     @httpGet('/:id?')
@@ -54,7 +54,7 @@ export class Category{
         }
     }
 
-    @httpPost('/addCategory')
+    @httpPost('/addCategory',TYPES.IsAdminMiddleware)
     async addCategory(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             // console.log(req.body)
@@ -70,7 +70,7 @@ export class Category{
         }
     }
 
-    @httpDelete('/delete/:id')
+    @httpDelete('/delete/:id',TYPES.IsAdminMiddleware)
     async deleteCategory(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             const {id} = req.params
@@ -87,7 +87,7 @@ export class Category{
         }
     }
 
-    @httpPut('/update/:id')
+    @httpPut('/update/:id',TYPES.IsAdminMiddleware)
     async updateCategory(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             const {id} = req.params

@@ -6,7 +6,6 @@ import { TYPES } from "../types/TYPES";
 import { errorHandler } from "../handlers/errorHandler";
 import { IUsers } from "../interface";
 import { user } from "../models";
-import { isLoggedIn } from "../middlweare/user.middleware";
 
 @controller('/user')
 export class userController{

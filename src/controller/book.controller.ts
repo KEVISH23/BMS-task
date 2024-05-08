@@ -1,6 +1,6 @@
 import { inject } from "inversify";
 import { controller,httpDelete,httpGet,httpPost,httpPut, request, response } from "inversify-express-utils";
-import { isLoggedIn } from "../middlweare/user.middleware";
+// import { isLoggedIn } from "../middlweare/user.middleware";
 import { Request, Response } from "express";
 import { BookService } from "../services";
 import { TYPES } from "../types/TYPES";
@@ -8,15 +8,26 @@ import { IAuthor, IBooks, ICategory } from "../interface";
 import { errorHandler } from "../handlers/errorHandler";
 import { author, book,category } from "../models";
 
-@controller('/books',isLoggedIn)
+@controller('/books')
 export class BookController{
     constructor(@inject<BookService>(TYPES.BookService) private readonly BS:BookService){}
     @httpGet('/:id?')
     async getBooks(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             const {id} = req.params
-            let query:any={}
-            const {Category,Author,search,page,limit} = req.query;
+            // const {Category,Author,search,page,limit} = req.query;
+            const {search,page,limit} = req.query;
+            let dynamicQuery:any = {}
+            // Category && Category?.toString().trim() !== "" ?dynamicQuery = {...dynamicQuery,categoryName:Category}:null
+            // Author && Author?.toString().trim() !== "" ?dynamicQuery = {...dynamicQuery,authorName:Author}:null
+            search && search.toString().trim() !==""?dynamicQuery={...dynamicQuery,
+                $or:["authorName","categoryName","bookTitle","description","ISBN"].map((ele)=>{
+                    return({[ele]:{$regex:search,$options:'i'}})
+                })
+            }:null
+            // console.log(dynamicQuery)
+            
+            //   console.log(pipeline)
             let pagination_page = Number(page) || 1
             const pagination_total:number = await book.countDocuments()
             const pagination_limit = Number(limit) || pagination_total
@@ -27,58 +38,57 @@ export class BookController{
             if(pagination_page<1){
                 pagination_page = 1
             }
-           if(Category){
-            const findCategory:ICategory|null = await category.findOne({categoryName:Category})
-            if(findCategory){
-                query.category = findCategory._id
-            }else{
-                res.status(404).json({message:"Category does not exists"})
-            }
-           }
-           if(Author){
-            const findAuthor:IAuthor|null = await author.findOne({authorName:Author})
-            if(findAuthor){
-                query.author = findAuthor._id
-            }else{
-                res.status(404).json({message:"Author does not exists"})
-            }
-            // query.author = author
-           }
-           if(search){
-            const regex = new RegExp(search.toString(),'i')
-            
-            query = {...query,
-                        
-                        $or:[
-                            {bookTitle:regex},
-                            {ISBN:regex},
-                            {description:regex}
-                        ]
-                        
-                    }
-            
-           }
-        //    console.log(query)
-            if(id){
-                const idData:IBooks|null = await this.BS.getBookById(id)
-                if(idData){
-                    res.status(200).json({message:'Got data',data:idData})
-                    return;
-                }else{
-                    res.status(404).json({message:"Data not found"})
-                    return;
+            let pipeline:any= [
+                {
+                    $skip:(pagination_page-1)*pagination_limit
+                },
+                {
+                    $limit:pagination_limit
+                },
+                {
+                  $lookup: {
+                    from: "categories",
+                    localField: "category",
+                    foreignField: "_id",
+                    as: "result"
+                  }
+                },
+                {
+                  $lookup: {
+                    from: "authors",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "authorResult"
+                  }
+                },
+                {
+                  $addFields: {
+                    authorName: {$arrayElemAt:["$authorResult.authorName",0]},
+                    categoryName: {$arrayElemAt:["$result.categoryName",0]},
+                  }
+                },
+                {
+                  $project: {
+                    result:0,
+                    authorResult:0
+                  }
+                },
+                {
+                    $match:dynamicQuery
                 }
-
-            }
+              ]
+        //    console.log(query)
+        // res.json(pipeline)
+           
             // console.log(pagination_page,pagination_limit,pagination_total,totalPage)
-            const data:IBooks[] = await this.BS.getBooksService(query,pagination_limit,pagination_page,pagination_total)
+            const data:IBooks[] = await this.BS.getBooksService(pipeline,pagination_limit,pagination_page,pagination_total)
             res.status(200).json({message:'Got data',data})
         }catch(err:any){
             const message:string = errorHandler(err);
             res.status(500).json({message})
         }
     }
-
+    //no use
     @httpGet('/?title&author&category')
     async filterBook(@request() req:Request,@response() res:Response):Promise<void>{
         try{
@@ -89,7 +99,7 @@ export class BookController{
         }
     }
 
-    @httpPost('/addBook')
+    @httpPost('/addBook',TYPES.IsAdminMiddleware)
     async addBooks(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             await this.BS.addBooksService(req.body)
@@ -105,7 +115,7 @@ export class BookController{
         }
     }
 
-    @httpDelete('/delete/:id')
+    @httpDelete('/delete/:id',TYPES.IsAdminMiddleware)
     async deleteById(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             const {id} = req.params
@@ -122,7 +132,7 @@ export class BookController{
         }
     }
 
-    @httpPut('/update/:id')
+    @httpPut('/update/:id',TYPES.IsAdminMiddleware)
     async updateBook(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             const {id} = req.params

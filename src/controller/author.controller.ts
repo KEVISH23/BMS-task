@@ -1,6 +1,6 @@
 import { inject } from "inversify";
 import { controller,httpDelete,httpGet,httpPost,httpPut, request, response } from "inversify-express-utils";
-import { isLoggedIn } from "../middlweare/user.middleware";
+// import { isLoggedIn } from "../middlweare/user.middleware";
 import { Request, Response } from "express";
 import { IAuthor } from "../interface";
 import { authorService } from "../services";
@@ -8,7 +8,7 @@ import { TYPES } from "../types/TYPES";
 import { errorHandler } from "../handlers/errorHandler";
 import { author } from "../models";
 
-@controller('/author',isLoggedIn)
+@controller('/author')
 export class AuthorController{
 
     constructor(@inject<authorService>(TYPES.authorService) private AS:authorService){}
@@ -56,7 +56,7 @@ export class AuthorController{
         }
     }
 
-    @httpPost('/addAuthor')
+    @httpPost('/addAuthor',TYPES.IsAdminMiddleware)
     async addAuthors(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             await this.AS.addAuthor(req.body)
@@ -71,7 +71,7 @@ export class AuthorController{
         }
     }
 
-    @httpDelete('/delete/:id')
+    @httpDelete('/delete/:id',TYPES.IsAdminMiddleware)
     async deleteAuthor(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             const {id} = req.params
@@ -88,7 +88,7 @@ export class AuthorController{
         }
     }
 
-    @httpPut('/update/:id')
+    @httpPut('/update/:id',TYPES.IsAdminMiddleware)
     async updateAuthor(@request() req:Request,@response() res:Response):Promise<void>{
         try{
             const {id} = req.params
