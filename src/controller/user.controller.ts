@@ -46,7 +46,12 @@ export class userController{
                 if(!dbuser){
                     res.status(400).json({message:"Please register before login"})
                 }else{
-                   this.US.loginService(dbuser,req.body.password)
+                  const bool:boolean = await this.US.loginService(dbuser,req.body.password)
+                  if(bool){
+                    res.status(200).json({message:"Logged In"})
+                  }else{
+                    res.status(401).json({message:"Invalid credentials"})
+                  }
                 }
         }
     }

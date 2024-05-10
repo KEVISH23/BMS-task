@@ -18,7 +18,7 @@ export class userService{
         await user.create(data)
     }
 
-    async loginService(data:IUsers,userPassword:string):Promise<void>{
+    async loginService(data:IUsers,userPassword:string):Promise<boolean>{
         console.log('here')
         let compareing =  bcrypt.compareSync(userPassword,data.password)
         console.log(compareing)
@@ -27,8 +27,9 @@ export class userService{
                 await user.findOneAndUpdate({userEmail:data.userEmail},{
                     $set:{token:tooken}
                 })
+                return true
         }else{
-            // return false
+            return false
         }
     }
 }
